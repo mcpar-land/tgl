@@ -1,14 +1,19 @@
 use macroquad::prelude::*;
+use world::world;
 
 use crate::screen::Screen;
 
 mod screen;
+mod world;
 
 pub const SCREEN_WIDTH: usize = 80;
 pub const SCREEN_HEIGHT: usize = 40;
 pub const FONT_SIZE: u16 = 12;
 pub const PADDING: u16 = 10;
 pub const FONT_RATIO: f32 = 1.5;
+pub const DEBUG: bool = true;
+
+pub type TermScreen = Screen<SCREEN_WIDTH, SCREEN_HEIGHT>;
 
 fn window_conf() -> Conf {
 	let padding = (PADDING * 2) as i32;
@@ -29,38 +34,16 @@ async fn main() {
 		"../resources/CascadiaCode-Regular.ttf"
 	))
 	.unwrap();
-	let mut screen =
-		Screen::<SCREEN_WIDTH, SCREEN_HEIGHT>::new(PADDING as f32, PADDING as f32);
-
-	let mut picker = 0;
-	let one_at_a_time = "BINGUSMYBELOVED";
-	for x in 0..SCREEN_WIDTH {
-		for y in 0..SCREEN_HEIGHT {
-			screen.write((x, y), ":", GRAY);
-		}
-	}
+	let (mut world, mut resources, mut schedule) = world();
 	loop {
+		schedule.execute(&mut world, &mut resources);
 		clear_background(BLACK);
-		screen.write((0, 0), "0", RED);
-		screen.write((79, 39), "X", RED);
-
-		screen.write((8, 4), "Hello, world!", GREEN);
-		screen.write(
-			(13, 5),
-			&format!("{}", one_at_a_time.chars().nth(picker).unwrap()),
-			YELLOW,
-		);
-		screen.write((20, 20), "This one has\na newline in it", BLUE);
+		let screen = resources.get::<TermScreen>().unwrap();
 		let draws = screen.draw(FONT_SIZE, font);
-		let debug = format!("{} - glyphs: {}", get_fps(), draws);
-		draw_text(&debug, 10.0, 10.0, 8.0, WHITE);
-
-		if picker >= one_at_a_time.len() - 1 {
-			picker = 0;
-		} else {
-			picker += 1;
+		if DEBUG {
+			let debug = format!("{} - glyphs: {}", get_fps(), draws);
+			draw_text(&debug, 10.0, 10.0, 8.0, WHITE);
 		}
-
 		next_frame().await;
 	}
 }
