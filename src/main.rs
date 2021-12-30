@@ -36,6 +36,10 @@ async fn main() {
 	.unwrap();
 	let (mut world, mut resources, mut schedule) = world();
 	loop {
+		{
+			let mut screen = resources.get_mut::<TermScreen>().unwrap();
+			screen.clear();
+		}
 		schedule.execute(&mut world, &mut resources);
 		clear_background(BLACK);
 		let screen = resources.get::<TermScreen>().unwrap();
