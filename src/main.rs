@@ -9,7 +9,6 @@ mod world;
 mod components {
 	pub mod components;
 	pub mod cycler;
-	pub mod label;
 	pub mod pos;
 }
 mod jitter;

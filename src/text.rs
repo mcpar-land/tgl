@@ -5,12 +5,16 @@ use nom::{
 	combinator::{map, opt, rest},
 	multi::{many0, separated_list0, separated_list1},
 	sequence::{delimited, pair},
-	IResult,
+	Finish, IResult,
 };
 
+use legion::*;
+
 use crate::{
+	components::pos::Pos,
 	jitter::{jitter_noise, jitter_sin},
 	screen::{GlyphOptions, Jitter},
+	TermScreen,
 };
 
 #[derive(Clone, Debug, PartialEq)]
@@ -221,6 +225,19 @@ impl StyledText {
 
 		Ok((input, StyledText(pairs)))
 	}
+
+	pub fn entity(x: usize, y: usize, text: &str) -> (Pos, Self) {
+		(Pos::new(x, y), Self::parse(text).finish().unwrap().1)
+	}
+}
+
+#[system(for_each)]
+pub fn draw_styled_text(
+	pos: &Pos<usize>,
+	text: &StyledText,
+	#[resource] screen: &mut TermScreen,
+) {
+	screen.write(pos, text);
 }
 
 #[cfg(test)]

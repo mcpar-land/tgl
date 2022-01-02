@@ -1,5 +1,8 @@
 use crate::{
-	jitter::JitterFn, FONT_RATIO, FONT_SIZE, PADDING, SCREEN_HEIGHT, SCREEN_WIDTH,
+	components::pos::Pos,
+	jitter::JitterFn,
+	text::{StyledSpan, StyledText},
+	FONT_RATIO, FONT_SIZE, PADDING, SCREEN_HEIGHT, SCREEN_WIDTH,
 };
 
 use macroquad::{color::Color, prelude::*};
@@ -72,19 +75,27 @@ impl<const W: usize, const H: usize> Screen<W, H> {
 		}
 	}
 
-	pub fn write(&mut self, pos: (usize, usize), s: &str) {
-		self.writeo(pos, s, &GlyphOptions::default());
-	}
-
-	pub fn writec(&mut self, pos: (usize, usize), s: &str, color: Color) {
-		self.writeo(
-			pos,
-			s,
-			&GlyphOptions {
-				color,
-				..Default::default()
-			},
-		);
+	pub fn write(&mut self, pos: &Pos, text: &StyledText) {
+		let mut progress_x = 0;
+		let mut progress_y = 0;
+		for StyledSpan { text, style } in &text.0 {
+			for c in text.chars() {
+				if c == '\n' {
+					progress_y += 1;
+					progress_x = 0;
+				} else {
+					if pos.x + progress_x >= W || pos.y + progress_y >= H {
+						progress_x += 1;
+						continue;
+					}
+					self.glyphs[pos.y + progress_y][pos.x + progress_x] = Glyph {
+						ch: c,
+						options: style.clone(),
+					};
+					progress_x += 1;
+				}
+			}
+		}
 	}
 
 	pub fn writeo(
