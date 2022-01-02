@@ -1,4 +1,6 @@
-use crate::{jitter::JitterFn, FONT_RATIO, FONT_SIZE};
+use crate::{
+	jitter::JitterFn, FONT_RATIO, FONT_SIZE, PADDING, SCREEN_HEIGHT, SCREEN_WIDTH,
+};
 
 use macroquad::{color::Color, prelude::*};
 
@@ -17,7 +19,7 @@ impl Default for Glyph {
 	}
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct GlyphOptions {
 	/// Color of the glyph
 	pub color: Color,
@@ -43,7 +45,7 @@ impl Default for GlyphOptions {
 	}
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Jitter {
 	Constant(f32, f32),
 	Fn(JitterFn),
@@ -118,8 +120,16 @@ impl<const W: usize, const H: usize> Screen<W, H> {
 	}
 
 	pub fn draw(&self, font_size: u16, font: Font) -> usize {
-		let mut draws_performed: usize = 0;
+		// find top right
+		let width = SCREEN_WIDTH as f32 * font_size as f32;
+		let height = SCREEN_HEIGHT as f32 * FONT_RATIO * font_size as f32;
+		let half_pad = PADDING as f32 / 2.0;
+		let top_right_x =
+			half_pad.max((screen_width() / 2.0) - (width / 2.0) + half_pad);
+		let top_right_y =
+			half_pad.max((screen_height() / 2.0) - (height / 2.0) + half_pad);
 
+		let mut draws_performed: usize = 0;
 		for y in 0..H {
 			for x in 0..W {
 				let glyph = &self.glyphs[y][x];
@@ -132,10 +142,10 @@ impl<const W: usize, const H: usize> Screen<W, H> {
 					} else {
 						(0.0, 0.0)
 					};
-					let xpos = x as f32 * font_size as f32 + self.x + jx;
+					let xpos = x as f32 * font_size as f32 + top_right_x + jx;
 					draw_rectangle(
 						xpos,
-						y as f32 * font_size as f32 * FONT_RATIO + self.y + jy,
+						y as f32 * font_size as f32 * FONT_RATIO + top_right_y + jy,
 						FONT_SIZE as f32,
 						FONT_SIZE as f32 * FONT_RATIO * 1.25,
 						glyph.options.background,
@@ -160,11 +170,11 @@ impl<const W: usize, const H: usize> Screen<W, H> {
 						(0.0, 0.0)
 					};
 
-					let xpos = x as f32 * font_size as f32 + self.x + jx;
+					let xpos = x as f32 * font_size as f32 + top_right_x + jx;
 					draw_text_ex(
 						s,
 						xpos,
-						(y + 1) as f32 * font_size as f32 * FONT_RATIO + self.y + jy,
+						(y + 1) as f32 * font_size as f32 * FONT_RATIO + top_right_y + jy,
 						TextParams {
 							font,
 							font_size,

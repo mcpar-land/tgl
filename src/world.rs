@@ -39,9 +39,20 @@ pub fn world() -> (World, Resources, Schedule) {
 		Label::new_fmt(
 			"im a wiggly homie",
 			&GlyphOptions {
-				color: BLACK,
-				background: GREEN,
+				color: PINK,
 				jitter: Jitter::Fn(jitter_sin),
+				..Default::default()
+			},
+		),
+	));
+
+	world.push((
+		Pos::new(10usize, 17),
+		Label::new_fmt(
+			"im a jittering MENACE to society",
+			&GlyphOptions {
+				color: RED,
+				jitter: Jitter::Fn(jitter_noise),
 				..Default::default()
 			},
 		),

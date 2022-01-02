@@ -4,11 +4,8 @@ use world::world;
 use crate::screen::Screen;
 
 mod screen;
-mod world;
-mod dialog {
-	pub mod dialog;
-}
 mod ticker;
+mod world;
 mod components {
 	pub mod components;
 	pub mod cycler;
@@ -16,6 +13,7 @@ mod components {
 	pub mod pos;
 }
 mod jitter;
+mod text;
 
 pub const SCREEN_WIDTH: usize = 80;
 pub const SCREEN_HEIGHT: usize = 40;
@@ -33,7 +31,7 @@ fn window_conf() -> Conf {
 		window_title: "Term Game Lib".to_string(),
 		window_width: SCREEN_WIDTH as i32 * FONT_SIZE as i32 + padding,
 		window_height: h + padding,
-		window_resizable: false,
+		window_resizable: true,
 		high_dpi: true,
 		..Default::default()
 	}
