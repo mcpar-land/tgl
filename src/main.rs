@@ -5,6 +5,17 @@ use crate::screen::Screen;
 
 mod screen;
 mod world;
+mod dialog {
+	pub mod dialog;
+}
+mod ticker;
+mod components {
+	pub mod components;
+	pub mod cycler;
+	pub mod label;
+	pub mod pos;
+}
+mod jitter;
 
 pub const SCREEN_WIDTH: usize = 80;
 pub const SCREEN_HEIGHT: usize = 40;

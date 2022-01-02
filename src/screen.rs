@@ -1,8 +1,6 @@
-use crate::{FONT_RATIO, FONT_SIZE};
+use crate::{jitter::JitterFn, FONT_RATIO, FONT_SIZE};
 
 use macroquad::{color::Color, prelude::*};
-
-type JitterFn = fn((usize, usize), f64) -> (f32, f32);
 
 #[derive(Clone, Copy)]
 pub struct Glyph {
@@ -21,9 +19,16 @@ impl Default for Glyph {
 
 #[derive(Clone, Copy)]
 pub struct GlyphOptions {
+	/// Color of the glyph
 	pub color: Color,
+	/// Color of the background rectangle
 	pub background: Color,
+	/// Jitter operation
 	pub jitter: Jitter,
+	/// Should jitter operation apply to the glyph? (default: true)
+	pub jitter_glyph: bool,
+	/// Should jitter operation apply to the background rectangle? (default: false)
+	pub jitter_bg: bool,
 }
 
 impl Default for GlyphOptions {
@@ -32,6 +37,8 @@ impl Default for GlyphOptions {
 			color: WHITE,
 			background: BLANK,
 			jitter: Jitter::default(),
+			jitter_glyph: true,
+			jitter_bg: false,
 		}
 	}
 }
@@ -64,14 +71,14 @@ impl<const W: usize, const H: usize> Screen<W, H> {
 	}
 
 	pub fn write(&mut self, pos: (usize, usize), s: &str) {
-		self.writeo(pos, s, GlyphOptions::default());
+		self.writeo(pos, s, &GlyphOptions::default());
 	}
 
 	pub fn writec(&mut self, pos: (usize, usize), s: &str, color: Color) {
 		self.writeo(
 			pos,
 			s,
-			GlyphOptions {
+			&GlyphOptions {
 				color,
 				..Default::default()
 			},
@@ -82,7 +89,7 @@ impl<const W: usize, const H: usize> Screen<W, H> {
 		&mut self,
 		(x, y): (usize, usize),
 		s: &str,
-		options: GlyphOptions,
+		options: &GlyphOptions,
 	) {
 		if y >= H {
 			return;
@@ -97,7 +104,10 @@ impl<const W: usize, const H: usize> Screen<W, H> {
 				y += 1;
 				progress_x = 0;
 			} else {
-				self.glyphs[y][x + progress_x] = Glyph { ch: c, options };
+				self.glyphs[y][x + progress_x] = Glyph {
+					ch: c,
+					options: options.clone(),
+				};
 				progress_x += 1;
 			}
 		}
@@ -114,9 +124,13 @@ impl<const W: usize, const H: usize> Screen<W, H> {
 			for x in 0..W {
 				let glyph = &self.glyphs[y][x];
 				if glyph.options.background != BLANK {
-					let (jx, jy) = match glyph.options.jitter {
-						Jitter::Constant(jx, jy) => (jx, jy),
-						Jitter::Fn(f) => f((x, y), get_time()),
+					let (jx, jy) = if glyph.options.jitter_bg {
+						match glyph.options.jitter {
+							Jitter::Constant(jx, jy) => (jx, jy),
+							Jitter::Fn(f) => f((x, y), get_time()),
+						}
+					} else {
+						(0.0, 0.0)
 					};
 					let xpos = x as f32 * font_size as f32 + self.x + jx;
 					draw_rectangle(
@@ -137,9 +151,13 @@ impl<const W: usize, const H: usize> Screen<W, H> {
 					let mut tmp = [0u8; 4];
 					let s = glyph.ch.encode_utf8(&mut tmp);
 
-					let (jx, jy) = match glyph.options.jitter {
-						Jitter::Constant(jx, jy) => (jx, jy),
-						Jitter::Fn(f) => f((x, y), get_time()),
+					let (jx, jy) = if glyph.options.jitter_glyph {
+						match glyph.options.jitter {
+							Jitter::Constant(jx, jy) => (jx, jy),
+							Jitter::Fn(f) => f((x, y), get_time()),
+						}
+					} else {
+						(0.0, 0.0)
 					};
 
 					let xpos = x as f32 * font_size as f32 + self.x + jx;
