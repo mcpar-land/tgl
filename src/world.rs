@@ -18,55 +18,29 @@ pub fn world() -> (World, Resources, Schedule) {
 		PADDING as f32,
 	));
 
-	// world.push((Pos::new(0usize, 0), Label::new("0")));
 	world.push(StyledText::entity(0, 0, "0"));
-	// world.push((Pos::new(79usize, 39), Label::new("X")));
 	world.push(StyledText::entity(79, 39, "X"));
-
-	// world.push((
-	// 	Pos::new(12usize, 12),
-	// 	Label::new_fmt(
-	// 		"hello there, buddy",
-	// 		&GlyphOptions {
-	// 			color: ORANGE,
-	// 			..Default::default()
-	// 		},
-	// 	),
-	// ));
 	world.push(StyledText::entity(12, 12, "#[orange]hello there, buddy"));
-
-	// world.push((
-	// 	Pos::new(17usize, 14),
-	// 	Label::new_fmt(
-	// 		"im a wiggly homie",
-	// 		&GlyphOptions {
-	// 			color: PINK,
-	// 			jitter: Jitter::Fn(jitter_sin),
-	// 			..Default::default()
-	// 		},
-	// 	),
-	// ));
 	world.push(StyledText::entity(
 		17,
 		14,
 		"#[sin]I'm a #[sin,pink]wiggly #[]homie",
 	));
-
-	// world.push((
-	// 	Pos::new(10usize, 17),
-	// 	Label::new_fmt(
-	// 		"im a jittering MENACE to society",
-	// 		&GlyphOptions {
-	// 			color: RED,
-	// 			jitter: Jitter::Fn(jitter_noise),
-	// 			..Default::default()
-	// 		},
-	// 	),
-	// ));
-	world.push(StyledText::entity(
-		60,
+	world.push(StyledText::entity_wrap(
+		20,
 		17,
-		"I'm a #[red,noise]jittering MENACE #[]to society\nBut don't let that fool you!\nI also like #[green]long walks on the beach.",
+		30,
+		"I'm a #[red,noise]jittering MENACE #[]to society. But don't let that fool you! I also like #[green]long walks on the beach.",
+	));
+
+	world.push(StyledText::entity(
+		50,
+		5,
+		r#"
+┳┳━━━━━━━━━━┓
+┃you did it ┃
+┃           ┃
+┗━━━━━━━━━━━┛"#,
 	));
 
 	let schedule = Schedule::builder()

@@ -134,11 +134,9 @@ impl<const W: usize, const H: usize> Screen<W, H> {
 		// find top right
 		let width = SCREEN_WIDTH as f32 * font_size as f32;
 		let height = SCREEN_HEIGHT as f32 * FONT_RATIO * font_size as f32;
-		let half_pad = PADDING as f32 / 2.0;
-		let top_right_x =
-			half_pad.max((screen_width() / 2.0) - (width / 2.0) + half_pad);
-		let top_right_y =
-			half_pad.max((screen_height() / 2.0) - (height / 2.0) + half_pad);
+		let padding = PADDING as f32;
+		let top_right_x = padding.max((screen_width() / 2.0) - (width / 2.0));
+		let top_right_y = padding.max((screen_height() / 2.0) - (height / 2.0));
 
 		let mut draws_performed: usize = 0;
 		for y in 0..H {

@@ -14,22 +14,22 @@ mod components {
 mod jitter;
 mod text;
 
-pub const SCREEN_WIDTH: usize = 80;
-pub const SCREEN_HEIGHT: usize = 40;
+pub const SCREEN_WIDTH: usize = 80; // characters
+pub const SCREEN_HEIGHT: usize = 40; // characters
 pub const FONT_SIZE: u16 = 12;
-pub const PADDING: u16 = 10;
+pub const PADDING: u16 = 10; // pixels
 pub const FONT_RATIO: f32 = 1.5;
 pub const DEBUG: bool = true;
 
 pub type TermScreen = Screen<SCREEN_WIDTH, SCREEN_HEIGHT>;
 
 fn window_conf() -> Conf {
-	let padding = (PADDING * 2) as i32;
+	let padding = PADDING as i32;
 	let h = (SCREEN_HEIGHT as f32 * FONT_SIZE as f32 * FONT_RATIO).floor() as i32;
 	Conf {
 		window_title: "Term Game Lib".to_string(),
-		window_width: SCREEN_WIDTH as i32 * FONT_SIZE as i32 + padding,
-		window_height: h + padding,
+		window_width: SCREEN_WIDTH as i32 * FONT_SIZE as i32 + padding * 2,
+		window_height: h + padding * 2,
 		window_resizable: true,
 		high_dpi: true,
 		..Default::default()

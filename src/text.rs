@@ -229,6 +229,51 @@ impl StyledText {
 	pub fn entity(x: usize, y: usize, text: &str) -> (Pos, Self) {
 		(Pos::new(x, y), Self::parse(text).finish().unwrap().1)
 	}
+
+	pub fn entity_wrap(
+		x: usize,
+		y: usize,
+		width: usize,
+		text: &str,
+	) -> (Pos, Self) {
+		(
+			Pos::new(x, y),
+			Self::parse(text).finish().unwrap().1.wrap(width),
+		)
+	}
+
+	pub fn unstyled(&self) -> String {
+		let mut s = String::new();
+		for span in &self.0 {
+			s.push_str(span.text.as_str());
+		}
+		s
+	}
+	pub fn style_ranges(&self) -> Vec<std::ops::Range<usize>> {
+		let mut indices = vec![0..self.0[0].text.len()];
+		for i in 1..self.0.len() {
+			indices
+				.push(indices[i - 1].end..(indices[i - 1].end + self.0[i].text.len()));
+		}
+		indices
+	}
+
+	pub fn wrap(&self, width: usize) -> StyledText {
+		let mut wrapped = self.unstyled();
+		textwrap::fill_inplace(&mut wrapped, width);
+		StyledText(
+			self
+				.0
+				.iter()
+				.map(|s| s.style.clone())
+				.zip(self.style_ranges())
+				.map(|(opts, range)| StyledSpan {
+					text: wrapped[range].to_string(),
+					style: opts,
+				})
+				.collect(),
+		)
+	}
 }
 
 #[system(for_each)]
@@ -294,5 +339,13 @@ mod test {
 				}
 			])
 		)
+	}
+	#[test]
+	fn span_ranges() {
+		let (rest, res) = StyledText::parse(
+			"This has some #[red]colored text #[]inside.\n#[gold,sin]And a newline!",
+		)
+		.unwrap();
+		assert_eq!(res.style_ranges(), vec![0..14, 14..27, 27..35, 35..49]);
 	}
 }
