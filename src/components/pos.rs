@@ -1,4 +1,7 @@
-use std::ops::{Add, Mul, Sub};
+use std::{
+	fmt::Display,
+	ops::{Add, Mul, Sub},
+};
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct Pos<T = usize>
@@ -113,6 +116,12 @@ where
 			x: self.x * rhs.x,
 			y: self.y * rhs.y,
 		}
+	}
+}
+
+impl<T: Display + Copy + PartialEq> Display for Pos<T> {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		write!(f, "({}, {})", self.x, self.y)
 	}
 }
 

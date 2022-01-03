@@ -130,13 +130,28 @@ impl<const W: usize, const H: usize> Screen<W, H> {
 		self.glyphs = [[Glyph::default(); W]; H]
 	}
 
-	pub fn draw(&self, font_size: u16, font: Font) -> usize {
-		// find top right
-		let width = SCREEN_WIDTH as f32 * font_size as f32;
-		let height = SCREEN_HEIGHT as f32 * FONT_RATIO * font_size as f32;
+	pub fn dimensions() -> Pos<f32> {
+		let font_size = FONT_SIZE as f32;
+		Pos::new(W as f32 * font_size, H as f32 * FONT_RATIO * font_size)
+	}
+
+	pub fn position() -> Pos<f32> {
+		let Pos {
+			x: width,
+			y: height,
+		} = Self::dimensions();
 		let padding = PADDING as f32;
 		let top_right_x = padding.max((screen_width() / 2.0) - (width / 2.0));
 		let top_right_y = padding.max((screen_height() / 2.0) - (height / 2.0));
+		Pos::new(top_right_x, top_right_y)
+	}
+
+	pub fn draw(&self, font: Font) -> usize {
+		let font_size = FONT_SIZE as f32;
+		let Pos {
+			x: top_right_x,
+			y: top_right_y,
+		} = Self::position();
 
 		let mut draws_performed: usize = 0;
 		for y in 0..H {
@@ -151,12 +166,12 @@ impl<const W: usize, const H: usize> Screen<W, H> {
 					} else {
 						(0.0, 0.0)
 					};
-					let xpos = x as f32 * font_size as f32 + top_right_x + jx;
+					let xpos = x as f32 * font_size + top_right_x + jx;
 					draw_rectangle(
 						xpos,
-						y as f32 * font_size as f32 * FONT_RATIO + top_right_y + jy,
-						FONT_SIZE as f32,
-						FONT_SIZE as f32 * FONT_RATIO * 1.25,
+						y as f32 * font_size * FONT_RATIO + top_right_y + jy,
+						font_size,
+						font_size * FONT_RATIO * 1.25,
 						glyph.options.background,
 					);
 				}
@@ -179,14 +194,14 @@ impl<const W: usize, const H: usize> Screen<W, H> {
 						(0.0, 0.0)
 					};
 
-					let xpos = x as f32 * font_size as f32 + top_right_x + jx;
+					let xpos = x as f32 * font_size + top_right_x + jx;
 					draw_text_ex(
 						s,
 						xpos,
-						(y + 1) as f32 * font_size as f32 * FONT_RATIO + top_right_y + jy,
+						(y + 1) as f32 * font_size * FONT_RATIO + top_right_y + jy,
 						TextParams {
 							font,
-							font_size,
+							font_size: FONT_SIZE,
 							font_scale: 1.0,
 							font_scale_aspect: 1.0,
 							color: self.glyphs[y][x].options.color,

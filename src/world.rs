@@ -3,10 +3,11 @@ use macroquad::prelude::*;
 
 use crate::{
 	components::pos::Pos,
+	input::{calc_input_system, Mouse},
 	jitter::{jitter_noise, jitter_sin},
 	screen::{GlyphOptions, Jitter, Screen},
 	text::{draw_styled_text_system, StyledText},
-	TermScreen, PADDING, SCREEN_HEIGHT, SCREEN_WIDTH,
+	TermScreen, DEBUG, PADDING, SCREEN_HEIGHT, SCREEN_WIDTH,
 };
 
 pub fn world() -> (World, Resources, Schedule) {
@@ -17,6 +18,7 @@ pub fn world() -> (World, Resources, Schedule) {
 		PADDING as f32,
 		PADDING as f32,
 	));
+	resources.insert(Mouse::default());
 
 	world.push(StyledText::entity(0, 0, "0"));
 	world.push(StyledText::entity(79, 39, "X"));
@@ -44,33 +46,19 @@ pub fn world() -> (World, Resources, Schedule) {
 	));
 
 	let schedule = Schedule::builder()
+		.add_system(calc_input_system())
 		.add_system(draw_styled_text_system())
+		.add_system(print_debug_system())
 		.build();
 
 	(world, resources, schedule)
 }
 
 #[system]
-pub fn do_stuff(#[resource] screen: &mut TermScreen) {
-	// screen.writec((0, 0), "0", RED);
-	// screen.writec((79, 39), "X", RED);
-
-	// screen.writeo(
-	// 	(8, 4),
-	// 	"Hello, world!",
-	// 	GlyphOptions {
-	// 		background: GRAY,
-	// 		..Default::default()
-	// 	},
-	// );
-
-	// screen.writeo(
-	// 	(20, 20),
-	// 	"This one, here? It has\na newline in it.",
-	// 	GlyphOptions {
-	// 		background: RED,
-	// 		jitter: Jitter::Fn(jitter_noise),
-	// 		..Default::default()
-	// 	},
-	// );
+pub fn print_debug(#[resource] mouse: &Mouse) {
+	if DEBUG {
+		if let Mouse(Some(mouse)) = &mouse {
+			draw_text(&format!("Mouse: {}", mouse), 150.0, 10.0, 8.0, WHITE);
+		}
+	}
 }

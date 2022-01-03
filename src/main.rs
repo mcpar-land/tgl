@@ -11,6 +11,7 @@ mod components {
 	pub mod cycler;
 	pub mod pos;
 }
+mod input;
 mod jitter;
 mod text;
 
@@ -48,10 +49,10 @@ async fn main() {
 			let mut screen = resources.get_mut::<TermScreen>().unwrap();
 			screen.clear();
 		}
-		schedule.execute(&mut world, &mut resources);
 		clear_background(BLACK);
+		schedule.execute(&mut world, &mut resources);
 		let screen = resources.get::<TermScreen>().unwrap();
-		let draws = screen.draw(FONT_SIZE, font);
+		let draws = screen.draw(font);
 		if DEBUG {
 			let debug = format!("{} - glyphs: {}", get_fps(), draws);
 			draw_text(&debug, 10.0, 10.0, 8.0, WHITE);
