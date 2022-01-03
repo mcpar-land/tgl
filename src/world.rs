@@ -1,67 +1,69 @@
-use legion::*;
+use bevy_ecs::prelude::*;
 use macroquad::prelude::*;
 
 use crate::{
 	components::{
-		node::{draw_nodes_system, Node},
+		node::{draw_nodes, Node},
 		pos::Pos,
 	},
-	input::{calc_input_system, Mouse},
+	input::{calc_input_sys, Mouse},
 	jitter::{jitter_noise, jitter_sin},
 	screen::{GlyphOptions, Jitter, Screen},
-	TermScreen, DEBUG, PADDING, SCREEN_HEIGHT, SCREEN_WIDTH,
+	DEBUG, PADDING, SCREEN_HEIGHT, SCREEN_WIDTH,
 };
 
-pub fn world() -> (World, Resources, Schedule) {
+pub fn world() -> (World, Schedule) {
 	let mut world = World::default();
 
-	let mut resources = Resources::default();
-	resources.insert(Screen::<SCREEN_WIDTH, SCREEN_HEIGHT>::new(
-		PADDING as f32,
-		PADDING as f32,
-	));
-	resources.insert(Mouse::default());
+	//TODO for some reason this line causes a stack overflow? Neat?
+	world.insert_resource(Screen::new());
+	world.insert_resource(Mouse::default());
+	world.spawn_batch(vec![
+			Node::new(0, 0, "0"),
+			Node::new(79, 39, "X"),
+			Node::new(12, 12, "#[orange]hello there, buddy"),
+			Node::new(17, 14, "#[sin]I'm a #[sin,pink]wiggly #[]homie"),
+			Node::new_wrap(
+				20,
+				17,
+				30,
+				"I'm a #[red,noise]jittering MENACE #[]to society. But don't let that fool you! I also like #[green]long walks on the beach.",
+			),
+			Node::new(
+				50,
+				5,
+				r#"
+	┳┳━━━━━━━━━━┓
+	┃you did it ┃
+	┃           ┃
+	┗━━━━━━━━━━━┛"#,
+			)
+		]);
 
-	world.push(((), Node::new(0, 0, "0")));
-	world.push(((), Node::new(79, 39, "X")));
-	world.push(((), Node::new(12, 12, "#[orange]hello there, buddy")));
-	world.push((
-		(),
-		Node::new(17, 14, "#[sin]I'm a #[sin,pink]wiggly #[]homie"),
-	));
-	world.push(((), Node::new_wrap(
-		20,
-		17,
-		30,
-		"I'm a #[red,noise]jittering MENACE #[]to society. But don't let that fool you! I also like #[green]long walks on the beach.",
-	)));
+	let mut schedule = Schedule::default();
 
-	world.push((
-		(),
-		Node::new(
-			50,
-			5,
-			r#"
-┳┳━━━━━━━━━━┓
-┃you did it ┃
-┃           ┃
-┗━━━━━━━━━━━┛"#,
-		),
-	));
+	let mut events = SystemStage::parallel();
 
-	let schedule = Schedule::builder()
-		.add_system(calc_input_system())
-		.add_system(draw_nodes_system())
-		.add_system(print_debug_system())
-		.build();
+	schedule.add_stage("events", events);
 
-	(world, resources, schedule)
+	let mut logic = SystemStage::parallel();
+
+	logic.add_system(calc_input_sys.system());
+
+	schedule.add_stage_after("events", "logic", logic);
+
+	let mut draw = SystemStage::parallel();
+
+	draw.add_system(print_debug_sys.system());
+
+	schedule.add_stage_after("logic", "draw", draw);
+
+	(world, schedule)
 }
 
-#[system]
-pub fn print_debug(#[resource] mouse: &Mouse) {
+pub fn print_debug_sys(mouse: Res<Mouse>) {
 	if DEBUG {
-		if let Mouse(Some(mouse)) = &mouse {
+		if let Some(mouse) = mouse.0 {
 			draw_text(&format!("Mouse: {}", mouse), 150.0, 10.0, 8.0, WHITE);
 		}
 	}

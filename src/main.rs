@@ -1,3 +1,4 @@
+use bevy_ecs::schedule::Stage;
 use macroquad::prelude::*;
 use world::world;
 
@@ -23,8 +24,6 @@ pub const PADDING: u16 = 10; // pixels
 pub const FONT_RATIO: f32 = 1.5;
 pub const DEBUG: bool = true;
 
-pub type TermScreen = Screen<SCREEN_WIDTH, SCREEN_HEIGHT>;
-
 fn window_conf() -> Conf {
 	let padding = PADDING as i32;
 	let h = (SCREEN_HEIGHT as f32 * FONT_SIZE as f32 * FONT_RATIO).floor() as i32;
@@ -44,15 +43,15 @@ async fn main() {
 		"../resources/CascadiaCode-Regular.ttf"
 	))
 	.unwrap();
-	let (mut world, mut resources, mut schedule) = world();
+	let (mut world, mut schedule) = world();
 	loop {
 		{
-			let mut screen = resources.get_mut::<TermScreen>().unwrap();
+			let mut screen = world.get_resource_mut::<Screen>().unwrap();
 			screen.clear();
 		}
 		clear_background(BLACK);
-		schedule.execute(&mut world, &mut resources);
-		let screen = resources.get::<TermScreen>().unwrap();
+		schedule.run(&mut world);
+		let screen = world.get_resource::<Screen>().unwrap();
 		let draws = screen.draw(font);
 		if DEBUG {
 			let debug = format!("{} - glyphs: {}", get_fps(), draws);

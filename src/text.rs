@@ -8,13 +8,11 @@ use nom::{
 	Finish, IResult,
 };
 
-use legion::*;
-
 use crate::{
 	components::pos::Pos,
 	jitter::{jitter_noise, jitter_sin},
 	screen::{GlyphOptions, Jitter},
-	TermScreen,
+	Screen,
 };
 
 #[derive(Clone, Debug, PartialEq)]

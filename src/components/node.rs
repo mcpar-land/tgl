@@ -1,7 +1,8 @@
 use super::pos::Pos;
-use crate::{input::Mouse, text::StyledText, TermScreen};
-use legion::*;
+use crate::{input::Mouse, text::StyledText, Screen};
+use bevy_ecs::prelude::*;
 
+#[derive(Bundle)]
 pub struct Node {
 	pub text: StyledText,
 	pub pos: Pos<usize>,
@@ -48,7 +49,6 @@ impl Node {
 	}
 }
 
-#[system(for_each)]
-pub fn draw_nodes(node: &Node, #[resource] screen: &mut TermScreen) {
+pub fn draw_nodes(node: &Node, screen: &mut Screen) {
 	screen.write(&node.pos, &node.text);
 }
