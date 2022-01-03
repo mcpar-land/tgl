@@ -3,7 +3,7 @@ use nom::{
 	bytes::complete::{tag, take_until1},
 	character::complete::alpha1,
 	combinator::{map, opt, rest},
-	multi::{many0, separated_list0, separated_list1},
+	multi::{many0, separated_list0},
 	sequence::{delimited, pair},
 	Finish, IResult,
 };
@@ -226,22 +226,6 @@ impl StyledText {
 		Ok((input, StyledText(pairs)))
 	}
 
-	pub fn entity(x: usize, y: usize, text: &str) -> (Pos, Self) {
-		(Pos::new(x, y), Self::parse(text).finish().unwrap().1)
-	}
-
-	pub fn entity_wrap(
-		x: usize,
-		y: usize,
-		width: usize,
-		text: &str,
-	) -> (Pos, Self) {
-		(
-			Pos::new(x, y),
-			Self::parse(text).finish().unwrap().1.wrap(width),
-		)
-	}
-
 	pub fn unstyled(&self) -> String {
 		let mut s = String::new();
 		for span in &self.0 {
@@ -274,15 +258,6 @@ impl StyledText {
 				.collect(),
 		)
 	}
-}
-
-#[system(for_each)]
-pub fn draw_styled_text(
-	pos: &Pos<usize>,
-	text: &StyledText,
-	#[resource] screen: &mut TermScreen,
-) {
-	screen.write(pos, text);
 }
 
 #[cfg(test)]

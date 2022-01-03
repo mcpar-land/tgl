@@ -1,11 +1,22 @@
-use crate::{
-	components::pos::Pos, TermScreen, FONT_RATIO, SCREEN_HEIGHT, SCREEN_WIDTH,
-};
+use crate::{components::pos::Pos, TermScreen, SCREEN_HEIGHT, SCREEN_WIDTH};
 use legion::*;
 use macroquad::prelude::*;
 
 #[derive(Debug, Default)]
 pub struct Mouse(pub Option<Pos<usize>>);
+
+impl Mouse {
+	pub fn in_box(&self, top_left: Pos<usize>, bottom_right: Pos<usize>) -> bool {
+		if let Mouse(Some(pos)) = &self {
+			pos.x >= top_left.x
+				&& pos.y >= top_left.y
+				&& pos.x <= bottom_right.x
+				&& pos.y <= bottom_right.y
+		} else {
+			false
+		}
+	}
+}
 
 #[system]
 pub fn calc_input(#[resource] mouse: &mut Mouse) {

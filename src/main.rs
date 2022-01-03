@@ -9,6 +9,7 @@ mod world;
 mod components {
 	pub mod components;
 	pub mod cycler;
+	pub mod node;
 	pub mod pos;
 }
 mod input;
