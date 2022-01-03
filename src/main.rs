@@ -1,9 +1,9 @@
 use macroquad::prelude::*;
+use resources::delta_time::DeltaTime;
 use world::world;
 
-use crate::screen::Screen;
+use crate::resources::screen::Screen;
 
-mod screen;
 mod ticker;
 mod world;
 mod components {
@@ -12,7 +12,11 @@ mod components {
 	pub mod node;
 	pub mod pos;
 }
-mod input;
+mod resources {
+	pub mod delta_time;
+	pub mod input;
+	pub mod screen;
+}
 mod jitter;
 mod text;
 
@@ -46,6 +50,7 @@ async fn main() {
 	.unwrap();
 	let (mut world, mut resources, mut schedule) = world();
 	loop {
+		let dt = std::time::Instant::now();
 		{
 			let mut screen = resources.get_mut::<TermScreen>().unwrap();
 			screen.clear();
@@ -59,5 +64,8 @@ async fn main() {
 			draw_text(&debug, 10.0, 10.0, 8.0, WHITE);
 		}
 		next_frame().await;
+		let dt = dt.elapsed().as_secs_f32();
+		let mut delta_time = resources.get_mut::<DeltaTime>().unwrap();
+		delta_time.0 = dt;
 	}
 }

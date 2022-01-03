@@ -6,9 +6,12 @@ use crate::{
 		node::{draw_nodes_system, Node},
 		pos::Pos,
 	},
-	input::{calc_input_system, Mouse},
 	jitter::{jitter_noise, jitter_sin},
-	screen::{GlyphOptions, Jitter, Screen},
+	resources::screen::{GlyphOptions, Jitter, Screen},
+	resources::{
+		delta_time::DeltaTime,
+		input::{calc_input_system, Mouse},
+	},
 	TermScreen, DEBUG, PADDING, SCREEN_HEIGHT, SCREEN_WIDTH,
 };
 
@@ -21,6 +24,7 @@ pub fn world() -> (World, Resources, Schedule) {
 		PADDING as f32,
 	));
 	resources.insert(Mouse::default());
+	resources.insert(DeltaTime(0.0));
 
 	world.push(((), Node::new(0, 0, "0")));
 	world.push(((), Node::new(79, 39, "X")));

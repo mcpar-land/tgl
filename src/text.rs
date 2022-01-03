@@ -13,7 +13,7 @@ use legion::*;
 use crate::{
 	components::pos::Pos,
 	jitter::{jitter_noise, jitter_sin},
-	screen::{GlyphOptions, Jitter},
+	resources::screen::{GlyphOptions, Jitter},
 	TermScreen,
 };
 
@@ -226,6 +226,10 @@ impl StyledText {
 		Ok((input, StyledText(pairs)))
 	}
 
+	pub fn len(&self) -> usize {
+		self.0.iter().fold(0, |acc, span| acc + span.text.len())
+	}
+
 	pub fn unstyled(&self) -> String {
 		let mut s = String::new();
 		for span in &self.0 {
@@ -257,6 +261,10 @@ impl StyledText {
 				})
 				.collect(),
 		)
+	}
+
+	pub fn slice(&self, slice: std::ops::Range<usize>) -> StyledText {
+		todo!();
 	}
 }
 

@@ -1,30 +1,48 @@
+use crate::{
+	components::node::Node, resources::delta_time::DeltaTime, text::StyledText,
+};
+use legion::*;
+
 // use crate::dialog::dialog::DialogFile;
 
 pub struct Ticker {
-	// pub file: DialogFile,
-	pub current_id: String,
-	pub tick_position: usize,
-	pub wait_time: f32,
-	pub y: usize,
+	pub text: StyledText,
+	pub delay: f32,
+	len: usize,
+	tick_position: usize,
+	timer: f32,
 }
 
 impl Ticker {
-	// pub fn new(file: DialogFile) -> Self {
-	// 	let current_id = file.first_key().to_string();
-	// 	Self {
-	// 		file,
-	// 		current_id,
-	// 		tick_position: 0,
-	// 		wait_time: 0.0,
-	// 		y: 0,
-	// 	}
-	// }
+	pub fn new(text: StyledText) -> Self {
+		Self {
+			len: text.len(),
+			text,
+			delay: 0.1,
+			tick_position: 0,
+			timer: 0.0,
+		}
+	}
+}
 
-	// pub fn reset(&mut self, file: DialogFile) {
-	// 	self.file = file;
-	// 	self.current_id = self.file.first_key().to_string();
-	// 	self.tick_position = 0;
-	// 	self.wait_time = 0.0;
-	// 	self.y = 0;
-	// }
+#[system(for_each)]
+pub fn run_tickers(
+	ticker: &mut Ticker,
+	node: &mut Node,
+	#[resource] dt: &DeltaTime,
+) {
+	if ticker.tick_position >= ticker.len {
+		return;
+	}
+	ticker.timer += dt.0;
+	if ticker.timer > ticker.delay {
+		ticker.tick_position += 1;
+		ticker.timer = 0.0;
+
+		let unstyled = ticker.text.unstyled();
+		let mut chars = unstyled.chars().skip(ticker.tick_position);
+		while [Some('\n'), Some(' ')].contains(&chars.next()) {
+			ticker.tick_position += 1;
+		}
+	}
 }

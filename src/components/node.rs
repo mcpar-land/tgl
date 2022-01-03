@@ -1,5 +1,5 @@
 use super::pos::Pos;
-use crate::{input::Mouse, text::StyledText, TermScreen};
+use crate::{resources::input::Mouse, text::StyledText, TermScreen};
 use legion::*;
 
 pub struct Node {
