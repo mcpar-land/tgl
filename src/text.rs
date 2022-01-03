@@ -8,23 +8,18 @@ use nom::{
 	Finish, IResult,
 };
 
-use legion::*;
-
 use crate::{
 	components::pos::Pos,
 	jitter::{jitter_noise, jitter_sin},
-	resources::screen::{GlyphOptions, Jitter},
+	resources::screen::{GlyphOptions, Jitter, GLYPH_DEFAULT},
 	TermScreen,
 };
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct StyledSpan {
-	pub text: String,
-	pub style: GlyphOptions,
+pub struct StyledText {
+	pub source: String,
+	pub styles: Vec<(usize, GlyphOptions)>,
 }
-
-#[derive(Clone, Debug, PartialEq)]
-pub struct StyledText(pub Vec<StyledSpan>);
 
 fn glyph_options(input: &str) -> IResult<&str, GlyphOptions> {
 	use macroquad::prelude::*;
@@ -206,61 +201,42 @@ fn glyph_options(input: &str) -> IResult<&str, GlyphOptions> {
 
 impl StyledText {
 	pub fn parse(input: &str) -> IResult<&str, Self> {
-		let (input, first_style) =
-			map(opt(glyph_options), |o| o.unwrap_or_default())(input)?;
+		let (input, first_style) = opt(glyph_options)(input)?;
 		let (input, first_text) = alt((take_until1("#["), rest))(input)?;
-		let first_span = StyledSpan {
-			text: first_text.to_string(),
-			style: first_style,
-		};
-		let (input, mut pairs) = many0(map(
-			pair(glyph_options, alt((take_until1("#["), rest))),
-			|(style, text)| StyledSpan {
-				text: text.to_string(),
-				style,
-			},
-		))(input)?;
+		let (input, pairs): (&str, Vec<(GlyphOptions, &str)>) =
+			many0(pair(glyph_options, alt((take_until1("#["), rest))))(input)?;
 
-		pairs.insert(0, first_span);
-
-		Ok((input, StyledText(pairs)))
-	}
-
-	pub fn len(&self) -> usize {
-		self.0.iter().fold(0, |acc, span| acc + span.text.len())
-	}
-
-	pub fn unstyled(&self) -> String {
-		let mut s = String::new();
-		for span in &self.0 {
-			s.push_str(span.text.as_str());
+		let mut source = first_text.to_string();
+		let mut styles = first_style.map_or_else(|| Vec::new(), |v| vec![(0, v)]);
+		for (i, (style, s)) in pairs.into_iter().enumerate() {
+			styles.push((source.len(), style));
+			source.push_str(s);
 		}
-		s
+
+		Ok((input, StyledText { source, styles }))
 	}
-	pub fn style_ranges(&self) -> Vec<std::ops::Range<usize>> {
-		let mut indices = vec![0..self.0[0].text.len()];
-		for i in 1..self.0.len() {
-			indices
-				.push(indices[i - 1].end..(indices[i - 1].end + self.0[i].text.len()));
+
+	pub fn style_at(&self, index: usize) -> &GlyphOptions {
+		if self.styles.len() == 0 || index < self.styles[0].0 {
+			&GLYPH_DEFAULT
+		} else if self.styles.len() == 1 {
+			&self.styles[0].1
+		} else {
+			let mut i = self.styles.len() - 1;
+			while self.styles[i].0 > index && i > 0 {
+				i -= 1;
+			}
+			&self.styles[i].1
 		}
-		indices
 	}
 
 	pub fn wrap(&self, width: usize) -> StyledText {
-		let mut wrapped = self.unstyled();
+		let mut wrapped = self.source.clone();
 		textwrap::fill_inplace(&mut wrapped, width);
-		StyledText(
-			self
-				.0
-				.iter()
-				.map(|s| s.style.clone())
-				.zip(self.style_ranges())
-				.map(|(opts, range)| StyledSpan {
-					text: wrapped[range].to_string(),
-					style: opts,
-				})
-				.collect(),
-		)
+		StyledText {
+			source: wrapped,
+			styles: self.styles.clone(),
+		}
 	}
 
 	pub fn slice(&self, slice: std::ops::Range<usize>) -> StyledText {
@@ -281,10 +257,10 @@ mod test {
 		assert_eq!(rest, "");
 		assert_eq!(
 			res,
-			StyledText(vec![StyledSpan {
-				text: t.to_string(),
-				style: GlyphOptions::default()
-			}])
+			StyledText {
+				source: t.to_string(),
+				styles: Vec::new()
+			}
 		);
 	}
 	#[test]
@@ -296,39 +272,60 @@ mod test {
 		assert_eq!(rest, "");
 		assert_eq!(
 			res,
-			StyledText(vec![
-				StyledSpan {
-					text: "This has some ".to_string(),
-					style: GlyphOptions::default()
-				},
-				StyledSpan {
-					text: "colored text ".to_string(),
-					style: GlyphOptions {
-						color: RED,
-						..Default::default()
-					}
-				},
-				StyledSpan {
-					text: "inside.\n".to_string(),
-					style: GlyphOptions::default()
-				},
-				StyledSpan {
-					text: "And a newline!".to_string(),
-					style: GlyphOptions {
-						color: GOLD,
-						jitter: Jitter::Fn(jitter_sin),
-						..Default::default()
-					}
-				}
-			])
+			StyledText {
+				source: "This has some colored text inside.\nAnd a newline!"
+					.to_string(),
+				styles: vec![
+					(
+						14,
+						GlyphOptions {
+							color: RED,
+							..Default::default()
+						}
+					),
+					(27, GlyphOptions::default()),
+					(
+						35,
+						GlyphOptions {
+							color: GOLD,
+							jitter: Jitter::Fn(jitter_sin),
+							..Default::default()
+						}
+					),
+				]
+			}
 		)
 	}
 	#[test]
-	fn span_ranges() {
+	fn test_style_at() {
 		let (rest, res) = StyledText::parse(
 			"This has some #[red]colored text #[]inside.\n#[gold,sin]And a newline!",
 		)
 		.unwrap();
-		assert_eq!(res.style_ranges(), vec![0..14, 14..27, 27..35, 35..49]);
+		for i in 0..14 {
+			assert_eq!(res.style_at(i), &GLYPH_DEFAULT);
+		}
+		for i in 14..27 {
+			assert_eq!(
+				res.style_at(i),
+				&GlyphOptions {
+					color: RED,
+					..Default::default()
+				}
+			);
+		}
+		for i in 27..35 {
+			assert_eq!(res.style_at(i), &GLYPH_DEFAULT);
+		}
+		for i in 35..res.source.len() {
+			assert_eq!(
+				res.style_at(i),
+				&GlyphOptions {
+					color: GOLD,
+					jitter: Jitter::Fn(jitter_sin),
+					..Default::default()
+				}
+			);
+		}
 	}
 }

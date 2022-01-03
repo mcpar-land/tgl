@@ -1,8 +1,6 @@
 use crate::{
-	components::pos::Pos,
-	jitter::JitterFn,
-	text::{StyledSpan, StyledText},
-	FONT_RATIO, FONT_SIZE, PADDING, SCREEN_HEIGHT, SCREEN_WIDTH,
+	components::pos::Pos, jitter::JitterFn, text::StyledText, FONT_RATIO,
+	FONT_SIZE, PADDING, SCREEN_HEIGHT, SCREEN_WIDTH,
 };
 
 use macroquad::{color::Color, prelude::*};
@@ -36,15 +34,17 @@ pub struct GlyphOptions {
 	pub jitter_bg: bool,
 }
 
+pub const GLYPH_DEFAULT: GlyphOptions = GlyphOptions {
+	color: WHITE,
+	background: BLANK,
+	jitter: Jitter::Constant(0.0, 0.0),
+	jitter_glyph: true,
+	jitter_bg: false,
+};
+
 impl Default for GlyphOptions {
 	fn default() -> Self {
-		Self {
-			color: WHITE,
-			background: BLANK,
-			jitter: Jitter::default(),
-			jitter_glyph: true,
-			jitter_bg: false,
-		}
+		GLYPH_DEFAULT
 	}
 }
 
@@ -78,22 +78,21 @@ impl<const W: usize, const H: usize> Screen<W, H> {
 	pub fn write(&mut self, pos: &Pos, text: &StyledText) {
 		let mut progress_x = 0;
 		let mut progress_y = 0;
-		for StyledSpan { text, style } in &text.0 {
-			for c in text.chars() {
-				if c == '\n' {
-					progress_y += 1;
-					progress_x = 0;
-				} else {
-					if pos.x + progress_x >= W || pos.y + progress_y >= H {
-						progress_x += 1;
-						continue;
-					}
-					self.glyphs[pos.y + progress_y][pos.x + progress_x] = Glyph {
-						ch: c,
-						options: style.clone(),
-					};
+
+		for (i, c) in text.source.chars().enumerate() {
+			if c == '\n' {
+				progress_y += 1;
+				progress_x = 0;
+			} else {
+				if pos.x + progress_x >= W || pos.y + progress_y >= H {
 					progress_x += 1;
+					continue;
 				}
+				self.glyphs[pos.y + progress_y][pos.x + progress_x] = Glyph {
+					ch: c,
+					options: *text.style_at(i),
+				};
+				progress_x += 1;
 			}
 		}
 	}

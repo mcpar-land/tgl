@@ -8,7 +8,6 @@ use legion::*;
 pub struct Ticker {
 	pub text: StyledText,
 	pub delay: f32,
-	len: usize,
 	tick_position: usize,
 	timer: f32,
 }
@@ -16,7 +15,6 @@ pub struct Ticker {
 impl Ticker {
 	pub fn new(text: StyledText) -> Self {
 		Self {
-			len: text.len(),
 			text,
 			delay: 0.1,
 			tick_position: 0,
@@ -31,18 +29,18 @@ pub fn run_tickers(
 	node: &mut Node,
 	#[resource] dt: &DeltaTime,
 ) {
-	if ticker.tick_position >= ticker.len {
-		return;
-	}
-	ticker.timer += dt.0;
-	if ticker.timer > ticker.delay {
-		ticker.tick_position += 1;
-		ticker.timer = 0.0;
+	// if ticker.tick_position >= ticker.source.len() {
+	// 	return;
+	// }
+	// ticker.timer += dt.0;
+	// if ticker.timer > ticker.delay {
+	// 	ticker.tick_position += 1;
+	// 	ticker.timer = 0.0;
 
-		let unstyled = ticker.text.unstyled();
-		let mut chars = unstyled.chars().skip(ticker.tick_position);
-		while [Some('\n'), Some(' ')].contains(&chars.next()) {
-			ticker.tick_position += 1;
-		}
-	}
+	// let unstyled = ticker.text.unstyled();
+	// let mut chars = unstyled.chars().skip(ticker.tick_position);
+	// while [Some('\n'), Some(' ')].contains(&chars.next()) {
+	// 	ticker.tick_position += 1;
+	// }
+	// }
 }

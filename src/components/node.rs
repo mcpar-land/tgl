@@ -5,7 +5,6 @@ use legion::*;
 pub struct Node {
 	pub text: StyledText,
 	pub pos: Pos<usize>,
-	raw_cache: String,
 	hitbox: (Pos<usize>, Pos<usize>),
 }
 
@@ -24,9 +23,8 @@ impl Node {
 		if wrapped {
 			text = text.wrap(width);
 		}
-		let unstyled = text.unstyled();
 
-		let (x, y) = unstyled.lines().fold((0, 0), |(x, y), line| {
+		let (x, y) = text.source.lines().fold((0, 0), |(x, y), line| {
 			if line.len() > x {
 				(line.len(), y + 1)
 			} else {
@@ -38,7 +36,6 @@ impl Node {
 		Self {
 			text,
 			pos,
-			raw_cache: unstyled,
 			hitbox: (pos, bl),
 		}
 	}
