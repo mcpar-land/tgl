@@ -12,6 +12,7 @@ use crate::{
 		delta_time::DeltaTime,
 		input::{calc_input_system, Mouse},
 	},
+	ticker::{run_tickers_system, Ticker},
 	TermScreen, DEBUG, PADDING, SCREEN_HEIGHT, SCREEN_WIDTH,
 };
 
@@ -33,7 +34,7 @@ pub fn world() -> (World, Resources, Schedule) {
 		(),
 		Node::new(17, 14, "#[sin]I'm a #[sin,pink]wiggly #[]homie"),
 	));
-	world.push(((), Node::new_wrap(
+	world.push((Ticker::new(), Node::new_wrap(
 		20,
 		17,
 		30,
@@ -55,6 +56,7 @@ pub fn world() -> (World, Resources, Schedule) {
 
 	let schedule = Schedule::builder()
 		.add_system(calc_input_system())
+		.add_system(run_tickers_system())
 		.add_system(draw_nodes_system())
 		.add_system(print_debug_system())
 		.build();

@@ -19,7 +19,7 @@ impl Node {
 
 	fn _new(x: usize, y: usize, wrapped: bool, width: usize, text: &str) -> Self {
 		let pos = Pos::new(x, y);
-		let mut text = StyledText::parse(text).unwrap().1;
+		let mut text = StyledText::parse(text);
 		if wrapped {
 			text = text.wrap(width);
 		}

@@ -9,10 +9,8 @@ use nom::{
 };
 
 use crate::{
-	components::pos::Pos,
 	jitter::{jitter_noise, jitter_sin},
 	resources::screen::{GlyphOptions, Jitter, GLYPH_DEFAULT},
-	TermScreen,
 };
 
 #[derive(Clone, Debug, PartialEq)]
@@ -200,7 +198,16 @@ fn glyph_options(input: &str) -> IResult<&str, GlyphOptions> {
 }
 
 impl StyledText {
-	pub fn parse(input: &str) -> IResult<&str, Self> {
+	pub fn empty() -> Self {
+		Self {
+			source: String::new(),
+			styles: Vec::new(),
+		}
+	}
+	pub fn parse(input: &str) -> Self {
+		Self::parse_nom(input).unwrap().1
+	}
+	pub fn parse_nom(input: &str) -> IResult<&str, Self> {
 		let (input, first_style) = opt(glyph_options)(input)?;
 		let (input, first_text) = alt((take_until1("#["), rest))(input)?;
 		let (input, pairs): (&str, Vec<(GlyphOptions, &str)>) =
@@ -253,7 +260,7 @@ mod test {
 	#[test]
 	fn parse_default() {
 		let t = "This is some default styled text";
-		let (rest, res) = StyledText::parse(t).unwrap();
+		let (rest, res) = StyledText::parse_nom(t).unwrap();
 		assert_eq!(rest, "");
 		assert_eq!(
 			res,
@@ -265,7 +272,7 @@ mod test {
 	}
 	#[test]
 	fn parse_tags() {
-		let (rest, res) = StyledText::parse(
+		let (rest, res) = StyledText::parse_nom(
 			"This has some #[red]colored text #[]inside.\n#[gold,sin]And a newline!",
 		)
 		.unwrap();
@@ -298,7 +305,7 @@ mod test {
 	}
 	#[test]
 	fn test_style_at() {
-		let (rest, res) = StyledText::parse(
+		let (rest, res) = StyledText::parse_nom(
 			"This has some #[red]colored text #[]inside.\n#[gold,sin]And a newline!",
 		)
 		.unwrap();
