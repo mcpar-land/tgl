@@ -1,6 +1,6 @@
 use super::pos::Pos;
-use crate::{resources::input::Mouse, text::StyledText, TermScreen};
-use legion::*;
+use crate::{resources::input::Mouse, text::StyledText, Screen};
+use bevy_ecs::prelude::*;
 
 pub struct Node {
 	pub text: StyledText,
@@ -45,7 +45,8 @@ impl Node {
 	}
 }
 
-#[system(for_each)]
-pub fn draw_nodes(node: &Node, #[resource] screen: &mut TermScreen) {
-	screen.write(&node.pos, &node.text);
+pub fn draw_nodes_sys(query: Query<&Node>, mut screen: ResMut<Box<Screen>>) {
+	for node in query.iter() {
+		screen.write(&node.pos, &node.text);
+	}
 }

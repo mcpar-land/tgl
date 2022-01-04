@@ -1,8 +1,7 @@
 use crate::{
 	components::node::Node, resources::delta_time::DeltaTime, text::StyledText,
 };
-use legion::*;
-
+use bevy_ecs::prelude::*;
 // use crate::dialog::dialog::DialogFile;
 
 pub struct Ticker {
@@ -31,36 +30,36 @@ impl Ticker {
 	}
 }
 
-#[system(for_each)]
-pub fn run_tickers(
-	ticker: &mut Ticker,
-	node: &mut Node,
-	#[resource] dt: &DeltaTime,
+pub fn run_tickers_sys(
+	mut query: Query<(&mut Ticker, &mut Node)>,
+	dt: Res<DeltaTime>,
 ) {
-	if let Some(text) = &ticker.text {
-		if ticker.tick_position >= text.source.len() {
-			return;
-		}
-		ticker.timer += dt.0;
-		if ticker.timer > ticker.delay {
-			ticker.tick_position += 1;
-			ticker.timer = 0.0;
-
+	for (mut ticker, mut node) in query.iter_mut() {
+		if let Some(text) = ticker.text.clone() {
 			if ticker.tick_position >= text.source.len() {
 				return;
 			}
-
-			let mut chars = text.source.chars().skip(ticker.tick_position);
-			while [Some('\n'), Some(' ')].contains(&chars.next()) {
+			ticker.timer += dt.0;
+			if ticker.timer > ticker.delay {
 				ticker.tick_position += 1;
+				ticker.timer = 0.0;
+
+				if ticker.tick_position >= text.source.len() {
+					return;
+				}
+
+				let mut chars = text.source.chars().skip(ticker.tick_position);
+				while [Some('\n'), Some(' ')].contains(&chars.next()) {
+					ticker.tick_position += 1;
+				}
+				node.text = StyledText {
+					source: text.source[0..=ticker.tick_position].to_string(),
+					styles: text.styles.clone(),
+				}
 			}
-			node.text = StyledText {
-				source: text.source[0..=ticker.tick_position].to_string(),
-				styles: text.styles.clone(),
-			}
+		} else {
+			ticker.text = Some(node.text.clone());
+			node.text = StyledText::empty();
 		}
-	} else {
-		ticker.text = Some(node.text.clone());
-		node.text = StyledText::empty();
 	}
 }

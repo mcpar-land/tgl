@@ -11,6 +11,7 @@ use nom::{
 use crate::{
 	jitter::{jitter_noise, jitter_sin},
 	resources::screen::{GlyphOptions, Jitter, GLYPH_DEFAULT},
+	Screen,
 };
 
 #[derive(Clone, Debug, PartialEq)]

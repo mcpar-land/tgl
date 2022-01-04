@@ -5,7 +5,7 @@ use crate::{
 
 use macroquad::{color::Color, prelude::*};
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Glyph {
 	pub ch: char,
 	pub options: GlyphOptions,
@@ -60,18 +60,15 @@ impl Default for Jitter {
 	}
 }
 
-pub struct Screen<const W: usize, const H: usize> {
-	pub glyphs: [[Glyph; W]; H],
-	pub x: f32,
-	pub y: f32,
+#[derive(Debug)]
+pub struct Screen {
+	pub glyphs: [[Glyph; SCREEN_WIDTH]; SCREEN_HEIGHT],
 }
 
-impl<const W: usize, const H: usize> Screen<W, H> {
-	pub fn new(x: f32, y: f32) -> Self {
+impl Screen {
+	pub fn new() -> Self {
 		Self {
-			glyphs: [[Glyph::default(); W]; H],
-			x,
-			y,
+			glyphs: [[Glyph::default(); SCREEN_WIDTH]; SCREEN_HEIGHT],
 		}
 	}
 
@@ -84,7 +81,9 @@ impl<const W: usize, const H: usize> Screen<W, H> {
 				progress_y += 1;
 				progress_x = 0;
 			} else {
-				if pos.x + progress_x >= W || pos.y + progress_y >= H {
+				if pos.x + progress_x >= SCREEN_WIDTH
+					|| pos.y + progress_y >= SCREEN_HEIGHT
+				{
 					progress_x += 1;
 					continue;
 				}
@@ -103,13 +102,13 @@ impl<const W: usize, const H: usize> Screen<W, H> {
 		s: &str,
 		options: &GlyphOptions,
 	) {
-		if y >= H {
+		if y >= SCREEN_HEIGHT {
 			return;
 		}
 		let mut progress_x = 0;
 		let mut y = y;
 		for (i, c) in s.chars().enumerate() {
-			if x + i >= W || y >= H {
+			if x + i >= SCREEN_WIDTH || y >= SCREEN_HEIGHT {
 				return;
 			}
 			if c == '\n' {
@@ -126,12 +125,15 @@ impl<const W: usize, const H: usize> Screen<W, H> {
 	}
 
 	pub fn clear(&mut self) {
-		self.glyphs = [[Glyph::default(); W]; H]
+		self.glyphs = [[Glyph::default(); SCREEN_WIDTH]; SCREEN_HEIGHT]
 	}
 
 	pub fn dimensions() -> Pos<f32> {
 		let font_size = FONT_SIZE as f32;
-		Pos::new(W as f32 * font_size, H as f32 * FONT_RATIO * font_size)
+		Pos::new(
+			SCREEN_WIDTH as f32 * font_size,
+			SCREEN_HEIGHT as f32 * FONT_RATIO * font_size,
+		)
 	}
 
 	pub fn position() -> Pos<f32> {
@@ -153,8 +155,8 @@ impl<const W: usize, const H: usize> Screen<W, H> {
 		} = Self::position();
 
 		let mut draws_performed: usize = 0;
-		for y in 0..H {
-			for x in 0..W {
+		for y in 0..SCREEN_HEIGHT {
+			for x in 0..SCREEN_WIDTH {
 				let glyph = &self.glyphs[y][x];
 				if glyph.options.background != BLANK {
 					let (jx, jy) = if glyph.options.jitter_bg {
@@ -177,8 +179,8 @@ impl<const W: usize, const H: usize> Screen<W, H> {
 			}
 		}
 
-		for y in 0..H {
-			for x in 0..W {
+		for y in 0..SCREEN_HEIGHT {
+			for x in 0..SCREEN_WIDTH {
 				let glyph = &self.glyphs[y][x];
 				if glyph.ch != ' ' {
 					let mut tmp = [0u8; 4];

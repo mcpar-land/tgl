@@ -1,5 +1,5 @@
-use crate::{components::pos::Pos, TermScreen, SCREEN_HEIGHT, SCREEN_WIDTH};
-use legion::*;
+use crate::{components::pos::Pos, Screen, SCREEN_HEIGHT, SCREEN_WIDTH};
+use bevy_ecs::prelude::*;
 use macroquad::prelude::*;
 
 #[derive(Debug, Default)]
@@ -18,10 +18,9 @@ impl Mouse {
 	}
 }
 
-#[system]
-pub fn calc_input(#[resource] mouse: &mut Mouse) {
-	let root = TermScreen::position();
-	let dimensions = TermScreen::dimensions();
+pub fn calc_input_sys(mut mouse: ResMut<Mouse>) {
+	let root = Screen::position();
+	let dimensions = Screen::dimensions();
 	let bottom_right = root + dimensions;
 	let m = mouse_position_local();
 	let m = (Pos::new(m.x, m.y) + 1.0) * (1.0 / 2.5);
