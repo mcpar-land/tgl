@@ -2,7 +2,6 @@ use super::pos::Pos;
 use crate::{input::Mouse, text::StyledText, Screen};
 use bevy_ecs::prelude::*;
 
-#[derive(Bundle)]
 pub struct Node {
 	pub text: StyledText,
 	pub pos: Pos<usize>,
@@ -49,6 +48,8 @@ impl Node {
 	}
 }
 
-pub fn draw_nodes(node: &Node, screen: &mut Screen) {
-	screen.write(&node.pos, &node.text);
+pub fn draw_nodes_sys(query: Query<&Node>, mut screen: ResMut<Box<Screen>>) {
+	for node in query.iter() {
+		screen.write(&node.pos, &node.text);
+	}
 }

@@ -46,12 +46,12 @@ async fn main() {
 	let (mut world, mut schedule) = world();
 	loop {
 		{
-			let mut screen = world.get_resource_mut::<Screen>().unwrap();
+			let mut screen = world.get_resource_mut::<Box<Screen>>().unwrap();
 			screen.clear();
 		}
 		clear_background(BLACK);
 		schedule.run(&mut world);
-		let screen = world.get_resource::<Screen>().unwrap();
+		let screen = world.get_resource::<Box<Screen>>().unwrap();
 		let draws = screen.draw(font);
 		if DEBUG {
 			let debug = format!("{} - glyphs: {}", get_fps(), draws);

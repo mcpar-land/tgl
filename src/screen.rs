@@ -39,8 +39,8 @@ pub struct GlyphOptions {
 impl Default for GlyphOptions {
 	fn default() -> Self {
 		Self {
-			color: WHITE,
-			background: BLANK,
+			color: WHITE.clone(),
+			background: BLANK.clone(),
 			jitter: Jitter::default(),
 			jitter_glyph: true,
 			jitter_bg: false,

@@ -3,7 +3,7 @@ use macroquad::prelude::*;
 
 use crate::{
 	components::{
-		node::{draw_nodes, Node},
+		node::{draw_nodes_sys, Node},
 		pos::Pos,
 	},
 	input::{calc_input_sys, Mouse},
@@ -16,9 +16,9 @@ pub fn world() -> (World, Schedule) {
 	let mut world = World::default();
 
 	//TODO for some reason this line causes a stack overflow? Neat?
-	world.insert_resource(Screen::new());
+	world.insert_resource(Box::new(Screen::new()));
 	world.insert_resource(Mouse::default());
-	world.spawn_batch(vec![
+	for node in [
 			Node::new(0, 0, "0"),
 			Node::new(79, 39, "X"),
 			Node::new(12, 12, "#[orange]hello there, buddy"),
@@ -33,12 +33,14 @@ pub fn world() -> (World, Schedule) {
 				50,
 				5,
 				r#"
-	┳┳━━━━━━━━━━┓
-	┃you did it ┃
-	┃           ┃
-	┗━━━━━━━━━━━┛"#,
+┳┳━━━━━━━━━━┓
+┃you did it ┃
+┃           ┃
+┗━━━━━━━━━━━┛"#,
 			)
-		]);
+		] {
+			world.spawn().insert(node);
+		}
 
 	let mut schedule = Schedule::default();
 
@@ -54,6 +56,7 @@ pub fn world() -> (World, Schedule) {
 
 	let mut draw = SystemStage::parallel();
 
+	draw.add_system(draw_nodes_sys.system());
 	draw.add_system(print_debug_sys.system());
 
 	schedule.add_stage_after("logic", "draw", draw);
