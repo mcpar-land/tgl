@@ -3,7 +3,8 @@ use macroquad::prelude::*;
 
 use crate::{
 	components::{
-		node::{draw_nodes_sys, Node},
+		label::{draw_labels_sys, Label},
+		node::Node,
 		pos::Pos,
 	},
 	jitter::{jitter_noise, jitter_sin},
@@ -19,16 +20,15 @@ use crate::{
 pub fn world() -> (World, Schedule) {
 	let mut world = World::default();
 
-	//TODO for some reason this line causes a stack overflow? Neat?
 	world.insert_resource(Box::new(Screen::new()));
 	world.insert_resource(Mouse::default());
 	world.insert_resource(DeltaTime(0.0));
-	for node in [
-		Node::new(0, 0, "0"),
-		Node::new(79, 39, "X"),
-		Node::new(12, 12, "#[orange]hello there, buddy"),
-		Node::new(17, 14, "#[sin]I'm a #[sin,pink]wiggly #[]homie"),
-		Node::new(
+	for (x, y, s) in [
+		(0, 0, "0"),
+		(79, 39, "X"),
+		(12, 12, "#[orange]hello there, buddy"),
+		(17, 14, "#[sin]I'm a #[sin,pink]wiggly #[]homie"),
+		(
 			50,
 			5,
 			r#"
@@ -38,11 +38,14 @@ pub fn world() -> (World, Schedule) {
 ┗━━━━━━━━━━━┛"#,
 		),
 	] {
-		world.spawn().insert(node);
+		world
+			.spawn()
+			.insert(Node::new(x, y))
+			.insert(Label::new(false, 0, s));
 	}
-	world.spawn().insert(Node::new_wrap(
+	world.spawn().insert(Node::new(
 			20,
-			17,
+			17)).insert(Label::new(true,
 			30,
 			"I'm a #[red,noise]jittering MENACE #[]to society. But don't let that fool you! I also like #[green]long walks on the beach.",
 		)).insert(Ticker::new());
@@ -62,7 +65,7 @@ pub fn world() -> (World, Schedule) {
 
 	let mut draw = SystemStage::parallel();
 
-	draw.add_system(draw_nodes_sys.system());
+	draw.add_system(draw_labels_sys.system());
 	draw.add_system(print_debug_sys.system());
 
 	schedule.add_stage_after("logic", "draw", draw);

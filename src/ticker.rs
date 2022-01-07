@@ -1,5 +1,7 @@
 use crate::{
-	components::node::Node, resources::delta_time::DeltaTime, text::StyledText,
+	components::{label::Label, node::Node},
+	resources::delta_time::DeltaTime,
+	text::StyledText,
 };
 use bevy_ecs::prelude::*;
 // use crate::dialog::dialog::DialogFile;
@@ -31,10 +33,10 @@ impl Ticker {
 }
 
 pub fn run_tickers_sys(
-	mut query: Query<(&mut Ticker, &mut Node)>,
+	mut query: Query<(&mut Ticker, &mut Label)>,
 	dt: Res<DeltaTime>,
 ) {
-	for (mut ticker, mut node) in query.iter_mut() {
+	for (mut ticker, mut label) in query.iter_mut() {
 		if let Some(text) = ticker.text.clone() {
 			if ticker.tick_position >= text.source.len() {
 				return;
@@ -52,14 +54,14 @@ pub fn run_tickers_sys(
 				while [Some('\n'), Some(' ')].contains(&chars.next()) {
 					ticker.tick_position += 1;
 				}
-				node.text = StyledText {
+				label.text = StyledText {
 					source: text.source[0..=ticker.tick_position].to_string(),
 					styles: text.styles.clone(),
 				}
 			}
 		} else {
-			ticker.text = Some(node.text.clone());
-			node.text = StyledText::empty();
+			ticker.text = Some(label.text.clone());
+			label.text = StyledText::empty();
 		}
 	}
 }

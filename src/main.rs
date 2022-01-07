@@ -8,8 +8,8 @@ use crate::resources::screen::Screen;
 mod ticker;
 mod world;
 mod components {
-	pub mod components;
-	pub mod cycler;
+	pub mod grid;
+	pub mod label;
 	pub mod node;
 	pub mod pos;
 }
